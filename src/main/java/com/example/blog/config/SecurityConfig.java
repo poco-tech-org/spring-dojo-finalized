@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
@@ -21,12 +23,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            SecurityContextRepository securityContextRepository
+            SecurityContextRepository securityContextRepository,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy
     ) throws Exception {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login"))
-                .addFilterAt(new JsonUsernamePasswordAuthenticationFilter(securityContextRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(new JsonUsernamePasswordAuthenticationFilter(securityContextRepository, sessionAuthenticationStrategy), UsernamePasswordAuthenticationFilter.class)
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
+                .sessionManagement(session -> session.sessionAuthenticationStrategy(sessionAuthenticationStrategy))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/articles/**").permitAll()
                         .anyRequest().authenticated()
@@ -34,6 +38,11 @@ public class SecurityConfig {
         ;
 
         return http.build();
+    }
+
+    @Bean
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new ChangeSessionIdAuthenticationStrategy();
     }
 
     @Bean
