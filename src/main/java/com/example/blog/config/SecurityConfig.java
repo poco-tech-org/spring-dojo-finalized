@@ -3,6 +3,7 @@ package com.example.blog.config;
 import com.example.blog.security.JsonUsernamePasswordAuthenticationFilter;
 import com.example.blog.web.filter.CsrfCookieFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -50,6 +51,9 @@ public class SecurityConfig {
                         .requestMatchers("/articles/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .logout(logout -> logout
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
+                )
         ;
 
         return http.build();
@@ -81,7 +85,7 @@ public class SecurityConfig {
     public SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
     }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
