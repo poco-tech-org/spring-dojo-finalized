@@ -2,6 +2,7 @@ package com.example.blog.config;
 
 import com.example.blog.security.JsonUsernamePasswordAuthenticationFilter;
 import com.example.blog.web.filter.CsrfCookieFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,20 +33,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
+            JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordAuthenticationFilter,
             SecurityContextRepository securityContextRepository,
-            SessionAuthenticationStrategy sessionAuthenticationStrategy,
-            AuthenticationManager authenticationManager
+            SessionAuthenticationStrategy sessionAuthenticationStrategy
     ) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
-                .addFilterAt(new JsonUsernamePasswordAuthenticationFilter(
-                        securityContextRepository,
-                        sessionAuthenticationStrategy,
-                        authenticationManager
-                ), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(jsonUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .sessionManagement(session -> session.sessionAuthenticationStrategy(sessionAuthenticationStrategy))
@@ -57,6 +54,11 @@ public class SecurityConfig {
         ;
 
         return http.build();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
     @Bean

@@ -11,17 +11,23 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Component
 public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
+    private final ObjectMapper objectMapper;
 
     public JsonUsernamePasswordAuthenticationFilter(
             SecurityContextRepository securityContextRepository,
             SessionAuthenticationStrategy sessionAuthenticationStrategy,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            ObjectMapper objectMapper
     ) {
         super();
+        this.objectMapper = objectMapper;
         setSecurityContextRepository(securityContextRepository);
         setSessionAuthenticationStrategy(sessionAuthenticationStrategy);
         setAuthenticationManager(authenticationManager);
@@ -38,7 +44,6 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
             HttpServletRequest request,
             HttpServletResponse response
     ) throws AuthenticationException {
-        var objectMapper = new ObjectMapper();
         LoginRequest json;
         try {
             json = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
